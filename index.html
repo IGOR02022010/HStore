@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HStore</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:#14171c;color:#e8eaed;
+  }
+  header{
+    padding:20px 26px 0;
+    background:#10131a;
+    border-bottom:1px solid #232833;
+  }
+  .head-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  h1{font-size:21px;font-weight:600;white-space:nowrap}
+  .search{
+    flex:1;min-width:200px;max-width:420px;
+    padding:9px 14px;border-radius:9px;border:1px solid #2e3440;
+    background:#1b1e24;color:#e8eaed;font-size:13px;outline:none;
+  }
+  .search:focus{border-color:RGB(255,102,0)}
+  .tabs{display:flex;gap:8px;margin:14px 0 0}
+  .tab{
+    background:none;border:1px solid transparent;color:#8b93a1;
+    padding:8px 16px;border-radius:9px 9px 0 0;cursor:pointer;font-size:13px;
+  }
+  .tab:hover{color:#e8eaed}
+  .tab.active{background:#14171c;color:RGB(255,102,0);border-color:#232833;border-bottom-color:#14171c}
+
+  .wrap{padding:22px 26px 60px;max-width:1200px;margin:0 auto}
+
+  .add-box{
+    background:#1b1e24;border:1px solid #2e3440;border-radius:12px;
+    padding:16px 18px;margin-bottom:22px;
+  }
+  .add-box h2{font-size:14px;font-weight:600;margin-bottom:10px;color:#c6cdd8}
+  .add-row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+  .add-row input[type=text]{
+    flex:1;min-width:240px;padding:9px 12px;border-radius:9px;border:1px solid #2e3440;
+    background:#14171c;color:#e8eaed;font-size:13px;outline:none;font-family:inherit;
+  }
+  .add-row input[type=text]:focus{border-color:RGB(255,102,0)}
+  button.b{
+    background:#242933;border:1px solid #2e3440;color:#e8eaed;border-radius:9px;
+    padding:9px 14px;font-size:13px;cursor:pointer;white-space:nowrap;
+  }
+  button.b:hover{background:#2d3441}
+  button.acc{
+    background:RGB(255,102,0);border:none;color:#0c1116;border-radius:9px;
+    padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+  }
+  button.acc:hover{filter:brightness(1.08)}
+  .hint{font-size:11px;color:#6b7482;margin-top:6px}
+
+  .sources{margin-top:10px;display:flex;flex-wrap:wrap;gap:7px}
+  .chip{
+    display:flex;align-items:center;gap:7px;background:#14171c;border:1px solid #2e3440;
+    border-radius:20px;padding:4px 8px 4px 12px;font-size:11px;color:#9aa3b0;max-width:340px;
+  }
+  .chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip.fixed{color:#5f9ec4;border-color:#26414f}
+  .chip .x{
+    background:none;border:none;color:#8b93a1;cursor:pointer;font-size:13px;
+    padding:0 4px;line-height:1;
+  }
+  .chip .x:hover{color:#ff7b72}
+
+  .grid{
+    display:grid;gap:24px;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  }
+  .card{
+    background:#1b1e24;border:1px solid #2e3440;border-radius:12px;
+    padding:16px;display:flex;flex-direction:column;gap:10px; margin-bottom: 10px;
+  }
+  .card-top{display:flex;gap:12px;align-items:flex-start}
+  .ic{
+    width:52px;height:52px;border-radius:12px;background:#242933;flex:0 0 52px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:22px;color:RGB(255,102,0);overflow:hidden;
+  }
+  .ic img{width:100%;height:100%;object-fit:cover}
+  .card h3{font-size:14px;font-weight:600;line-height:1.25;word-break:break-word}
+  .card .by{font-size:11px;color:#8b93a1;margin-top:2px}
+  .card .desc{
+    font-size:12px;color:#9aa3b0;flex:1;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .badges{display:flex;gap:6px;flex-wrap:wrap}
+  .badge{
+    font-size:10px;padding:2px 8px;border-radius:10px;
+    background:#14171c;border:1px solid #2e3440;color:#8b93a1;
+  }
+  .badge.mode{color:#5f9ec4;border-color:#26414f}
+  .card .btns{display:flex;gap:7px;flex-wrap:wrap}
+  .empty{color:#6b7482;font-size:13px;padding:30px 4px;text-align:center}
+
+  #status{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+    background:#1d2b38;border:1px solid #2a4a63;color:#cfe6f7;
+    padding:10px 18px;border-radius:10px;font-size:13px;
+    opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;max-width:80vw;
+  }
+  #status.show{opacity:1}
+  #status.err{background:#2a1b21;border-color:#4a2a35;color:#ffb4ac}
+
+  .modal{
+    position:fixed;inset:0;background:rgba(5,8,12,.72);z-index:50;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal.hidden{display:none}
+  .modal-box{
+    background:#1b1e24;border:1px solid #2e3440;border-radius:14px;
+    width:100%;max-width:640px;max-height:86vh;overflow:auto;padding:20px;
+  }
+  .modal-box h2{font-size:16px;font-weight:600;margin-bottom:12px}
+  .modal-box textarea{
+    width:100%;min-height:180px;padding:10px 12px;border-radius:9px;border:1px solid #2e3440;
+    background:#14171c;color:#e8eaed;font:12px/1.5 ui-monospace,Consolas,monospace;
+    outline:none;resize:vertical;
+  }
+  .modal-box textarea:focus{border-color:RGB(255,102,0)}
+  .m-row{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .detail-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}
+  .kv{font-size:12px;color:#9aa3b0;margin:3px 0}
+  .kv b{color:#c6cdd8;font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-top">
+    <h1>HStore</h1>
+    <input class="search" id="search" placeholder="Поиск приложений…">
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="catalog">Каталог</button>
+    <button class="tab" data-tab="installed">Установленные</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section style="display:none" class="add-box">
+    <h2>Подключить приложения к каталогу</h2>
+    <div class="add-row">
+      <input type="text" id="url-in" placeholder="Ссылка на .json-манифест приложения (https://…)">
+      <button class="b" id="btn-add-url">Добавить ссылку</button>
+    </div>
+    <div class="add-row">
+      <button class="b" id="btn-add-file">Загрузить .json файл</button>
+      <input type="file" id="file-in" accept=".json,application/json" hidden>
+      <button class="b" id="btn-add-paste">Вставить JSON вручную</button>
+    </div>
+    <div class="hint" id="add-hint">
+      Манифест — это обычный файл формата установщика (hencoreApp: 1). Его можно получить кнопкой
+      «Зарезирвировать» в Установщике. Каталог хранится в localStorage и восстанавливается при каждом открытии.
+      Для манифестов по ссылке нужен доступ CORS на сервере.
+      Манифесты .json, лежащие в той же папке, что и эта страница, подхватываются автоматически:
+      по листингу каталога сервера, по типовым именам (manifest.json, apps.json и т. п.)
+      или через index-файл со списком манифестов.
+    </div>
+    <div class="sources" id="sources"></div>
+  </section>
+
+  <main id="grid"></main>
+
+</div>
+
+<div id="status"></div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var DB_NAME  = 'hencore_installed_apps';
+  var STORE    = 'apps';
+  var LS_URLS  = 'hencore_market_urls';
+  var LS_LOCAL = 'hencore_market_local';
+
+  /* Автопоиск: имена файлов, которые пробуем подхватить рядом со страницей,
+     если сервер не отдаёт листинг каталога */
+  var AUTO_NAMES = [
+    'manifest.json', 'apps.json', 'catalog.json', 'index.json',
+    'manifests.json', 'hencore-apps.json', 'hencore.json', 'store.json',
+    'apps/index.json', 'apps/manifest.json'
+  ];
+
+
+  var BUILTIN_APPS = [
+<!-- Начало -->
+    {type: 'json', path:''
+
+
+	},
+<!-- Конец -->
+  ];
+
+  
+
+  function $(id){ return document.getElementById(id); }
+
+  var dbPromise = null;
+  function openDb(){
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject){
+      var rq = indexedDB.open(DB_NAME, 1);
+      rq.onupgradeneeded = function(){ rq.result.createObjectStore(STORE, { keyPath: 'id' }); };
+      rq.onsuccess = function(){ resolve(rq.result); };
+      rq.onerror   = function(){ reject(rq.error); };
+    });
+    return dbPromise;
+  }
+
+  function dbReq(store, method){
+    var args = Array.prototype.slice.call(arguments, 2);
+    return new Promise(function (resolve, reject){
+      var rq = store[method].apply(store, args);
+      rq.onsuccess = function(){ resolve(rq.result); };
+      rq.onerror   = function(){ reject(rq.error); };
+    });
+  }
+
+  function genId(){
+    return 'app' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function blobToDataUrl(blob){
+    return new Promise(function (resolve, reject){
+      var r = new FileReader();
+      r.onload  = function(){ resolve(r.result); };
+      r.onerror = function(){ reject(r.error || new Error('Ошибка чтения')); };
+      r.readAsDataURL(blob);
+    });
+  }
+
+  function dataUrlToBlob(dataUrl){
+    var comma = dataUrl.indexOf(',');
+    if (comma < 0) return new Blob([dataUrl], { type: 'text/html' });
+    var head = dataUrl.slice(0, comma);
+    var body = dataUrl.slice(comma + 1);
+    var m    = head.match(/^data:([^;]*)(;base64)?$/);
+    var mime = (m && m[1]) || 'text/html';
+    if (m && m[2]){
+      var raw = atob(body);
+      var arr = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+    try { return new Blob([decodeURIComponent(body)], { type: mime }); }
+    catch (e){ return new Blob([body], { type: mime }); }
+  }
+
+  function getUrls(){
+    try { return JSON.parse(localStorage.getItem(LS_URLS) || '[]'); }
+    catch (e){ return []; }
+  }
+  function setUrls(list){ localStorage.setItem(LS_URLS, JSON.stringify(list)); }
+
+  function getLocal(){
+    try { return JSON.parse(localStorage.getItem(LS_LOCAL) || '[]'); }
+    catch (e){ return []; }
+  }
+  function setLocal(list){ localStorage.setItem(LS_LOCAL, JSON.stringify(list)); }
+
+  /* ---------------- Состояние ---------------- */
+
+  var state = {
+    tab: 'catalog',
+    search: '',
+    entries: [],        // каталог: {source, label, data|null, error|null}
+    installedList: [],  // установленные записи из IndexedDB
+    autoManifests: []   // найденные автопоиском манифесты
+  };
+
+  /* ---------------- Проверка манифеста ---------------- */
+
+  function validate(d){
+    if (!d || typeof d !== 'object') return 'Некорректный JSON.';
+    if (d.hencoreApp !== 1) return 'Это не манифест приложения HENCORE (нет поля hencoreApp: 1).';
+    if (!String(d.name || '').trim()) return 'В манифесте не указано название (name).';
+    var hasContent = typeof d.content === 'string' && d.content.length > 0;
+    if (d.mode === 'idb' && !hasContent) return 'Манифест заявляет режим idb, но не содержит content (HTML-файл).';
+    if (d.mode !== 'idb' && !String(d.path || '').trim()) return 'В манифесте нет пути к HTML-файлу (path).';
+    return null;
+  }
+
+  /* ---------------- Загрузка каталога ---------------- */
+
+  function buildEntries(){
+    var list = [];
+    BUILTIN_APPS.forEach(function (b, i){
+      list.push({ source: 'builtin:' + i, label: 'Встроенное приложение', data: b.data, error: null });
+    });
+    getLocal().forEach(function (d, i){
+      list.push({ source: 'local:' + i, label: 'Локальный манифест', data: d, error: null });
+    });
+    getUrls().forEach(function (u, i){
+      list.push({ source: 'url:' + i, label: u, url: u, data: null, error: null });
+    });
+    state.entries = list;
+  }
+
+  /* Относительный путь из манифеста превращаем в абсолютный
+     относительно адреса самого манифеста */
+  function resolveAgainst(base, value){
+    var v = String(value || '').trim();
+    if (!v) return value;
+    if (/^(https?:\/\/|data:)/i.test(v) || /^\[.*\]/.test(v)) return value;
+    try { return new URL(v, base).href; } catch (e){ return value; }
+  }
+
+  async function fetchJson(url){
+    var r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return JSON.parse(await r.text());
+  }
+
+  async function fetchUrlEntries(){
+    var tasks = state.entries.filter(function (e){ return e.url; })
+      .map(function (e){
+        return fetchJson(e.url)
+          .then(function (d){
+            if (typeof d.path === 'string') d.path = resolveAgainst(e.url, d.path);
+            if (typeof d.icon === 'string') d.icon = resolveAgainst(e.url, d.icon);
+            e.data = d;
+            e.error = validate(d);
+          })
+          .catch(function (err){
+            e.error = 'Не удалось загрузить: ' + ((err && err.message) || err);
+          });
+      });
+    await Promise.all(tasks);
+  }
+
+  /* ---------------- Автопоиск .json рядом со страницей ---------------- */
+
+  function baseName(u){
+    try {
+      var p = decodeURIComponent(new URL(u).pathname.split('/').pop());
+      return p || u;
+    } catch (e){ return u; }
+  }
+
+  function pushAuto(list, label, url, data, error){
+    if (data){
+      if (typeof data.path === 'string') data.path = resolveAgainst(url, data.path);
+      if (typeof data.icon === 'string') data.icon = resolveAgainst(url, data.icon);
+    }
+    list.push({ source: 'auto:' + label, label: label, url: url, data: data, error: error });
+  }
+
+  /* Собираем кандидатов: сначала листинг каталога, потом типовые имена файлов */
+  async function autoCandidates(){
+    var found = [], seen = {};
+    function add(u){ if (u && !seen[u]){ seen[u] = 1; found.push(u); } }
+
+    var dir;
+    try { dir = new URL('.', location.href).href; }
+    catch (e){ dir = location.href; }
+
+    /* 1. Если сервер показывает список файлов — берём из него все .json */
+    try {
+      var r = await fetch(dir, { cache: 'no-store' });
+      if (r.ok){
+        var html = await r.text();
+        var re = /href\s*=\s*["']([^"']+\.json)["']/gi, m;
+        while ((m = re.exec(html))){
+          var href = m[1];
+          if (/^(javascript|mailto):/i.test(href)) continue;
+          try {
+            var u = new URL(href, dir).href;
+            if (u.indexOf(location.origin) === 0) add(u);
+          } catch (e){}
+        }
+      }
+    } catch (e){}
+
+    /* 2. Листинга нет — пробуем типовые имена. Файл считается найденным,
+          только если он реально парсится как JSON */
+    if (!found.length){
+      for (var i = 0; i < AUTO_NAMES.length; i++){
+        try {
+          var u2 = new URL(AUTO_NAMES[i], dir).href;
+          await fetchJson(u2);
+          add(u2);
+        } catch (e){}
+      }
+    }
+    return found;
+  }
+
+  async function scanAuto(){
+    var manifests = [];
+    var urls;
+    try { urls = await autoCandidates(); } catch (e){ urls = []; }
+
+    for (var i = 0; i < urls.length; i++){
+      var url = urls[i], d;
+      try { d = await fetchJson(url); }
+      catch (err){
+        pushAuto(manifests, baseName(url), url, null,
+          'Не удалось загрузить: ' + ((err && err.message) || err));
+        continue;
+      }
+      /* это сам манифест приложения */
+      if (d && d.hencoreApp === 1){
+        pushAuto(manifests, baseName(url), url, d, validate(d));
+        continue;
+      }
+      /* это index-файл: массив имён или {apps: [...]} — тянем перечисленные манифесты */
+      var files = Array.isArray(d) ? d
+        : (d && Array.isArray(d.apps) ? d.apps
+        : (d && Array.isArray(d.files) ? d.files : null));
+      if (!files) continue;
+      for (var j = 0; j < files.length; j++){
+        var fu;
+        try { fu = new URL(String(files[j]), url).href; } catch (e2){ continue; }
+        try {
+          var md = await fetchJson(fu);
+          pushAuto(manifests, baseName(fu), fu, md, validate(md));
+        } catch (err2){
+          pushAuto(manifests, baseName(fu), fu, null,
+            'Не удалось загрузить: ' + ((err2 && err2.message) || err2));
+        }
+      }
+    }
+
+    state.autoManifests = manifests;
+    state.entries = state.entries.concat(manifests);
+
+    var ok = manifests.filter(function (e){ return e.data; }).length;
+    if (ok) toast('Автопоиск: найдено манифестов — ' + ok + '.');
+  }
+
+  /* ---------------- Установка и удаление ---------------- */
+
+  async function install(data){
+    var err = validate(data);
+    if (err){ toast(err, true); return; }
+
+    var name = String(data.name).trim();
+    var dup = state.installedList.filter(function (r){ return r.name === name; })[0];
+    if (dup){
+      if (!confirm('Приложение "' + name + '" уже установлено. Заменить его?')) return;
+      await removeInternal(dup.id, false);
+    }
+
+    var hasContent = typeof data.content === 'string' && data.content.length > 0;
+    var mode = (data.mode === 'idb' && hasContent) ? 'idb' : 'path';
+    var path = String(data.path || '').trim();
+
+    var rec = {
+      id:      genId(),
+      name:    name,
+      mode:    mode,
+      path:    mode === 'path' ? path : null,
+      blob:    null,
+      icon:    data.icon || '',
+      desc:    String(data.desc || '').trim(),
+      license: String(data.license || '').trim(),
+      author:  String(data.author || '').trim(),
+      added:   Date.now()
+    };
+
+    if (mode === 'idb'){
+      rec.blob = String(data.content).slice(0, 5) === 'data:'
+        ? dataUrlToBlob(data.content)
+        : new Blob([data.content], { type: 'text/html' });
+    }
+
+    try {
+      var db = await openDb();
+      await dbReq(db.transaction(STORE, 'readwrite').objectStore(STORE), 'put', rec);
+      toast('Приложение "' + name + '" установлено. Найдите его в Установщике или перезагрузите систему.');
+    } catch (e){
+      toast('Ошибка установки: ' + ((e && e.message) || e), true);
+      return;
+    }
+    await loadInstalled();
+    render();
+  }
+
+  async function removeInternal(id, notify){
+    var rec = null;
+    for (var i = 0; i < state.installedList.length; i++){
+      if (state.installedList[i].id === id){ rec = state.installedList[i]; break; }
+    }
+    try {
+      var db = await openDb();
+      await dbReq(db.transaction(STORE, 'readwrite').objectStore(STORE), 'delete', id);
+    } catch (e){}
+    if (notify && rec) toast('Приложение "' + rec.name + '" удалено.');
+    await loadInstalled();
+    render();
+  }
+
+  async function loadInstalled(){
+    try {
+      var db = await openDb();
+      var store = db.transaction(STORE).objectStore(STORE);
+      state.installedList = (await dbReq(store, 'getAll')) || [];
+    } catch (e){
+      state.installedList = [];
+    }
+  }
+
+  /* ---------------- Зарезирвировать ---------------- */
+
+  async function exportApp(rec){
+    try {
+      var data = {
+        hencoreApp: 1,
+        name:    rec.name,
+        mode:    rec.mode,
+        path:    rec.path || '',
+        icon:    rec.icon || '',
+        desc:    rec.desc || '',
+        license: rec.license || '',
+        author:  rec.author || '',
+        added:   rec.added || null,
+        content: null
+      };
+      if (rec.mode === 'idb'){
+        if (rec.blob) data.content = await blobToDataUrl(rec.blob);
+        if (!data.content) return toast('Не удалось прочитать содержимое приложения.', true);
+      }
+      var fname = (rec.name || 'app').replace(/[^\wа-яёА-ЯЁ-]+/gi, '_') + '.hencore.json';
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fname;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1000);
+      toast('Зарезирвироватьировано: ' + fname);
+    } catch (e){
+      toast('Ошибка Зарезирвироватьа: ' + ((e && e.message) || e), true);
+    }
+  }
+
+  /* ---------------- Запуск ---------------- */
+
+  function openApp(rec){
+    if (rec.mode === 'idb' && rec.blob){
+      window.open(URL.createObjectURL(rec.blob), '_blank');
+    } else if (rec.path){
+      if (/^\[.*\]/.test(rec.path)) toast('Путь "' + rec.path + '" системный — он откроется внутри HENCORE OS. Здесь доступен запуск по http(s)-адресам.', true);
+      else window.open(rec.path, '_blank');
+    }
+  }
+
+  /* ---------------- Отрисовка ---------------- */
+
+  function toast(msg, isErr){
+    var s = $('status');
+    s.textContent = msg || '';
+    s.className = 'show' + (isErr ? ' err' : '');
+    clearTimeout(s._t);
+    s._t = setTimeout(function(){ s.className = ''; }, 4200);
+  }
+
+  function iconHtml(icon, name){
+    if (icon) return '<div class="ic"><img alt="" src="' + icon.replace(/"/g, '&quot;') + '"></div>';
+    var letter = (name || '?').trim().charAt(0).toUpperCase();
+    return '<div class="ic">' + letter + '</div>';
+  }
+
+  function esc(s){
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function isInstalled(name){
+    return state.installedList.some(function (r){ return r.name === name; });
+  }
+
+  function render(){
+    renderSources();
+    var grid = $('grid');
+    var q = state.search.toLowerCase();
+    grid.innerHTML = '';
+
+    if (state.tab === 'catalog'){
+      var shown = 0;
+      state.entries.forEach(function (e){
+        if (e.error || !e.data){
+          if (!e.error) return;
+          grid.insertAdjacentHTML('beforeend',
+            '<div class="card"><div class="card-top"><div class="ic">!</div>' +
+            '<div><h3>Ошибка загрузки</h3><div class="by">' + esc(e.label) + '</div></div></div>' +
+            '<div class="desc">' + esc(e.error) + '</div></div>');
+          return;
+        }
+        var d = e.data;
+        var name = String(d.name || '').trim();
+        if (q && (name + ' ' + (d.desc || '') + ' ' + (d.author || '')).toLowerCase().indexOf(q) < 0) return;
+        shown++;
+        var inst = isInstalled(name);
+        grid.insertAdjacentHTML('beforeend',
+          '<div class="card">' +
+            '<div class="card-top">' + iconHtml(d.icon, name) +
+              '<div><h3>' + esc(name) + '</h3>' +
+              '<div class="by">' + esc(d.author || 'Автор не указан') + '</div></div></div>' +
+            '<div class="desc">' + esc(d.desc || 'Описание не указано') + '</div>' +
+            '<div class="badges">' +
+              '<span class="badge mode">' + (d.mode === 'idb' ? 'Offline (в базе)' : 'По пути') + '</span>' +
+              (d.license ? '<span class="badge">' + esc(d.license) + '</span>' : '') +
+            '</div>' +
+            '<div class="btns">' +
+              (inst
+                ? '<button class="b" data-act="open-inst" data-name="' + esc(name) + '">Открыть</button>' +
+                  '<button class="b" data-act="del-name" data-name="' + esc(name) + '">Удалить</button>'
+                : '<button class="acc" data-act="install" data-source="' + e.source + '">Установить</button>') +
+              '<button class="b" data-act="details" data-source="' + e.source + '">Подробнее</button>' +
+            '</div>' +
+          '</div>');
+      });
+      if (!shown) grid.innerHTML = '<div class="empty">Каталог пуст. Автопоиск не нашёл манифестов рядом со страницей — положите .json рядом с этой страницей или подключите приложения сверху.</div>';
+      return;
+    }
+
+    // вкладка «Установленные»
+    var shown2 = 0;
+    state.installedList.slice().sort(function (a, b){ return (b.added || 0) - (a.added || 0); })
+      .forEach(function (r){
+        if (q && (r.name + ' ' + (r.desc || '') + ' ' + (r.author || '')).toLowerCase().indexOf(q) < 0) return;
+        shown2++;
+        grid.insertAdjacentHTML('beforeend',
+          '<div class="card">' +
+            '<div class="card-top">' + iconHtml(r.icon, r.name) +
+              '<div><h3>' + esc(r.name) + '</h3>' +
+              '<div class="by">' + esc(r.author || 'Автор не указан') + '</div></div></div>' +
+            '<div class="desc">' + esc(r.desc || 'Описание не указано') + '</div>' +
+            '<div class="badges">' +
+              '<span class="badge mode">' + (r.mode === 'idb' ? 'Offline (в базе)' : 'По пути: ' + esc(r.path || '')) + '</span>' +
+              (r.license ? '<span class="badge">' + esc(r.license) + '</span>' : '') +
+            '</div>' +
+            '<div class="btns">' +
+              '<button class="acc" data-act="open-rec" data-id="' + r.id + '">Открыть</button>' +
+              '<button class="b" data-act="export" data-id="' + r.id + '">Зарезирвировать</button>' +
+              '<button class="b" data-act="del" data-id="' + r.id + '">Удалить</button>' +
+            '</div>' +
+          '</div>');
+      });
+    if (!shown2) grid.innerHTML = '<div class="empty">Пока ничего не установлено. Перейдите на вкладку «Каталог».</div>';
+  }
+
+  function renderSources(){
+    var box = $('sources');
+    box.innerHTML = '';
+    BUILTIN_APPS.forEach(function (b, i){
+      if (!b.data) return;
+      box.insertAdjacentHTML('beforeend',
+        '<div class="chip fixed"><span>📦 ' + esc(b.data.name) + ' (встроено)</span></div>');
+    });
+    state.autoManifests.forEach(function (e){
+      box.insertAdjacentHTML('beforeend',
+        '<div class="chip fixed"><span>🌐 ' + esc(e.label) + ' (авто)</span></div>');
+    });
+    getLocal().forEach(function (d, i){
+      box.insertAdjacentHTML('beforeend',
+        '<div class="chip"><span>📄 ' + esc(d.name || 'манифест') + '</span>' +
+        '<button class="x" data-rm="local" data-i="' + i + '">✕</button></div>');
+    });
+    getUrls().forEach(function (u, i){
+      box.insertAdjacentHTML('beforeend',
+        '<div class="chip"><span>🔗 ' + esc(u) + '</span>' +
+        '<button class="x" data-rm="url" data-i="' + i + '">✕</button></div>');
+    });
+  }
+
+  /* ---------------- Модальные окна ---------------- */
+
+  function openModal(html){ $('modal-box').innerHTML = html; $('modal').classList.remove('hidden'); }
+  function closeModal(){ $('modal').classList.add('hidden'); }
+
+  function showDetails(e){
+    var d = e.data;
+    var inst = isInstalled(String(d.name || '').trim());
+    openModal(
+      '<div class="detail-head">' + iconHtml(d.icon, d.name) +
+        '<div><h2>' + esc(d.name) + '</h2>' +
+        '<div class="kv">Автор: <b>' + esc(d.author || '—') + '</b></div>' +
+        '<div class="kv">Лицензия: <b>' + esc(d.license || '—') + '</b></div>' +
+        '<div class="kv">Режим: <b>' + (d.mode === 'idb' ? 'сохранён в базу (offline)' : 'по пути') + '</b></div>' +
+      '</div></div>' +
+      '<p style="font-size:13px;color:#c6cdd8;margin-bottom:10px">' + esc(d.desc || 'Описание не указано') + '</p>' +
+      '<div class="kv" style="word-break:break-all">Запуск: <b>' + esc(d.path || '(HTML сохранён в манифесте)') + '</b></div>' +
+      '<div class="m-row">' +
+        '<button class="b" id="m-close">Закрыть</button>' +
+        (inst
+          ? '<button class="b" id="m-open">Открыть</button><button class="b" id="m-del">Удалить</button>'
+          : '<button class="acc" id="m-install">Установить</button>') +
+      '</div>');
+    $('m-close').onclick = closeModal;
+    if (inst){
+      $('m-open').onclick = function(){
+        var rec = state.installedList.filter(function (r){ return r.name === d.name; })[0];
+        closeModal(); if (rec) openApp(rec);
+      };
+      $('m-del').onclick = function(){
+        var rec = state.installedList.filter(function (r){ return r.name === d.name; })[0];
+        closeModal();
+        if (rec && confirm('Удалить приложение "' + rec.name + '"?')) removeInternal(rec.id, true);
+      };
+    } else {
+      $('m-install').onclick = function(){ closeModal(); install(d); };
+    }
+  }
+
+  function showPaste(){
+    openModal(
+      '<h2>Вставить манифест JSON</h2>' +
+      '<textarea id="paste-area" placeholder=\'{\n  "hencoreApp": 1,\n  "name": "Моё приложение",\n  "mode": "path",\n  "path": "https://example.com/app.html",\n  "icon": "",\n  "desc": "Описание",\n  "author": "",\n  "license": "MIT",\n  "content": null\n}\'></textarea>' +
+      '<div class="m-row">' +
+        '<button class="b" id="m-cancel">Отмена</button>' +
+        '<button class="acc" id="m-add">Добавить в каталог</button>' +
+      '</div>');
+    $('m-cancel').onclick = closeModal;
+    $('m-add').onclick = function(){
+      var txt = $('paste-area').value;
+      var d;
+      try { d = JSON.parse(txt); }
+      catch (e2){ toast('Некорректный JSON: ' + e2.message, true); return; }
+      var err = validate(d);
+      if (err){ toast(err, true); return; }
+      var list = getLocal();
+      var idx = -1;
+      for (var i = 0; i < list.length; i++){
+        if (list[i].name === d.name){ idx = i; break; }
+      }
+      if (idx >= 0) list[idx] = d; else list.push(d);
+      setLocal(list);
+      closeModal();
+      refreshCatalog();
+      toast('Манифест "' + d.name + '" добавлен в каталог.');
+    };
+  }
+
+  /* ---------------- Обработчики ---------------- */
+
+  document.addEventListener('click', function (ev){
+    var t = ev.target;
+
+    var tab = t.closest ? t.closest('.tab') : null;
+    if (tab){
+      document.querySelectorAll('.tab').forEach(function (b){ b.classList.remove('active'); });
+      tab.classList.add('active');
+      state.tab = tab.dataset.tab;
+      render();
+      return;
+    }
+
+    if (t.id === 'modal' || t.id === 'modal-close'){ closeModal(); return; }
+
+    if (t.id === 'btn-add-url'){
+      var u = $('url-in').value.trim();
+      if (!u){ toast('Введите ссылку на манифест.', true); return; }
+      var list = getUrls();
+      if (list.indexOf(u) < 0) list.push(u);
+      setUrls(list);
+      $('url-in').value = '';
+      refreshCatalog();
+      toast('Источник добавлен. Загружаю манифест…');
+      return;
+    }
+
+    if (t.id === 'btn-add-file'){ $('file-in').click(); return; }
+
+    if (t.id === 'btn-add-paste'){ showPaste(); return; }
+
+    var rm = t.getAttribute ? t.getAttribute('data-rm') : null;
+    if (rm){
+      var i = parseInt(t.getAttribute('data-i'), 10);
+      if (rm === 'url'){ var l = getUrls(); l.splice(i, 1); setUrls(l); }
+      if (rm === 'local'){ var g = getLocal(); g.splice(i, 1); setLocal(g); }
+      refreshCatalog();
+      return;
+    }
+
+    var act = t.getAttribute ? t.getAttribute('data-act') : null;
+    if (!act) return;
+
+    if (act === 'install'){
+      var e = findEntry(t.getAttribute('data-source'));
+      if (e && e.data) install(e.data);
+    }
+    if (act === 'details'){
+      var e2 = findEntry(t.getAttribute('data-source'));
+      if (e2 && e2.data) showDetails(e2);
+    }
+    if (act === 'open-inst' || act === 'del-name'){
+      var nm = t.getAttribute('data-name');
+      var rec = state.installedList.filter(function (r){ return r.name === nm; })[0];
+      if (!rec) return;
+      if (act === 'open-inst') openApp(rec);
+      else if (confirm('Удалить приложение "' + rec.name + '"?')) removeInternal(rec.id, true);
+    }
+    if (act === 'open-rec'){
+      var r2 = state.installedList.filter(function (r){ return r.id === t.getAttribute('data-id'); })[0];
+      if (r2) openApp(r2);
+    }
+    if (act === 'del'){
+      var r3 = state.installedList.filter(function (r){ return r.id === t.getAttribute('data-id'); })[0];
+      if (r3 && confirm('Удалить приложение "' + r3.name + '"?')) removeInternal(r3.id, true);
+    }
+    if (act === 'export'){
+      var r4 = state.installedList.filter(function (r){ return r.id === t.getAttribute('data-id'); })[0];
+      if (r4) exportApp(r4);
+    }
+  });
+
+  function findEntry(source){
+    for (var i = 0; i < state.entries.length; i++){
+      if (state.entries[i].source === source) return state.entries[i];
+    }
+    return null;
+  }
+
+  $('search').addEventListener('input', function(){
+    state.search = this.value.trim();
+    render();
+  });
+
+  $('file-in').addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function(){
+      var d;
+      try { d = JSON.parse(r.result); }
+      catch (e){ toast('Некорректный JSON в файле.', true); return; }
+      var err = validate(d);
+      if (err){ toast(err, true); return; }
+      var list = getLocal();
+      var idx = -1;
+      for (var i = 0; i < list.length; i++){
+        if (list[i].name === d.name){ idx = i; break; }
+      }
+      if (idx >= 0) list[idx] = d; else list.push(d);
+      setLocal(list);
+      refreshCatalog();
+      toast('Манифест "' + d.name + '" добавлен в каталог.');
+    };
+    r.readAsText(f, 'utf-8');
+  });
+
+  /* ---------------- Запуск ---------------- */
+
+  async function refreshCatalog(){
+    buildEntries();
+    await fetchUrlEntries();
+    await scanAuto();
+    await loadInstalled();
+    render();
+  }
+
+  refreshCatalog();
+
+  /* Небольшой программный интерфейс: можно добавлять приложения кодом,
+     например из консоли или из другого приложения системы:
+     HENCORE_MARKET.add({ hencoreApp:1, name:'...', mode:'path', path:'...' }) */
+  window.HENCORE_MARKET = {
+    add: function (d){
+      var err = validate(d);
+      if (err){ toast(err, true); return false; }
+      var list = getLocal();
+      var idx = -1;
+      for (var i = 0; i < list.length; i++){
+        if (list[i].name === d.name){ idx = i; break; }
+      }
+      if (idx >= 0) list[idx] = d; else list.push(d);
+      setLocal(list);
+      refreshCatalog();
+      return true;
+    },
+    refresh: refreshCatalog,
+    installed: function (){ return state.installedList.slice(); }
+  };
+
+})();
+</script>
+</body>
+</html>

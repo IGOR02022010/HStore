@@ -1,0 +1,12 @@
+{
+  "hencoreApp": 1,
+  "name": "GitHub",
+  "mode": "path",
+  "path": "https://github.com/",
+  "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAABf0lEQVQ4y6WTO0sDURCFz66FCj4IIVr4xBCwTtJZW1gKQgof+APEB6itdUQU/AHWlloFxEKLVNHCQpuA2KhgEhI0qEXiZ7HXdRO9AXGaZed+M3vn7Bnpj+E0vhLShBJKKiHpUhe6VNYpW6tZoExzlJn/He7nGFsc0d+MxyjSKorEgrhLFoAM1R9olQwAWVx/aDa0LanihAhrRZO6062kMY3qRPtOiYp6JW04O17/cd4ByFnFyAHwxrjkSppTuySpzyqfd9KhWa8gadK71oI98/RICgDU6LReqZMaAE+SGDFq5FsZgryhhl0NmFykpYW+5hsUEV/xQWv/IZ8Ju05BRZOfsvb/Oik4JUmcm+pnxn7tH+XZEGdeYh545QoosEpXA9zNmlERML7F5QZIscgHUOfQxw+oB1x17blJEjNAlWGWeOGRab8g1WDDmeCn08ApDm0NF0oG8O3m0dLABetsfi8LcSsuSSybJYr7mYRZnhXbD+phi3uiAUEf2KJH/4lPKx2N0HkiGkMAAAAASUVORK5CYII=",
+  "desc": "Веб версия приложения GitHub",
+  "license": "ignore-x-frame-options",
+  "author": "...",
+  "added": 1794999373637,
+  "content": null
+}

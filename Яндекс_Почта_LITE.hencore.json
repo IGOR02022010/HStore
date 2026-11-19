@@ -1,0 +1,12 @@
+{
+  "hencoreApp": 1,
+  "name": "Яндекс Почта LITE",
+  "mode": "path",
+  "path": "https://mail.yandex.ru/lite",
+  "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACxElEQVR4nLRWO28TQRD+du/OTmwefkQYhQABS4B4JAQiItGYBgkRCBAhaGn4AdSkiAQFHX8BiRZRUEAXQUcFAlHQ0dFGQgI757tdZnZv7xGUiNjOWvfanfnmm29ndy2xy03yTQMCI24OU+Q6JB6ghFG0FwgJWKUB9P3aMgL1CErMUY8NqsXOshJaJy/s/BVSPhEv198K/bB1A93eK+JfRszjQ6qldSK8DFEbv+ujPvYUf7plRCIidA+OyKCNCcY6hlQlen/so1KeRag0yr4PZdDFwFmwu6abFD42Io16dUHizKTGeCDQj3lADCUR+zIGYzHmuUktcaQBXDsLVKiAwjiZowFk0klhhpHFYszDDZqOMBI4PgHcmxeY2g9KjVlkTv8DzI19euTb2gcsX7CYhC1NWn1iXq8A12dgMur1s5S3C2JYJ2SYWJtAb58HJvZaTBqzAUwQZVO7RQbz00AUJyW3RRAHzk+2vXgUuDkLjJfsd4Lrp4ZMJKYgHhVx5wQZBsDHH5ZJ4NG63BTElKOyfpfbwKVjZKNsn5QpCb8gAw8obb8XyKG5B1j7DvzeAHyvGIADV0uWzKmDxFqZ/cZgpIuaM3BsXNpOEq6oky2bybtvwK8uZZcEYQkaVeDqaZqzutXflmhxXmAWtQtHT5EzYOMuTfahGnBnDphuUhZkHtDFFbJEek/lwPO+OUw/JyoKlcNPL5n8JrFdJMCf61YCDsrB+gwus7WTMs8y8P8tiWQ15+ub9WXA9gHbx/JFKtNb52R2GNooQuE1PpEzI0YZFR6Evdw7P8M+XbTHCF0cc++OlSaswKzWL7QO8Ix6QpQ93+TGe8lWl0dOntjehlhjzGCFdL6s2ANnbWkRFW+F6ngGOl/oO2mOPf088Zl26Oei8+a1SMVfpYrqXBnNkfnhfShW80emmQ4MedIUm8Mc+b+Jze0vAAAA//8UJIenAAAABklEQVQDAOuiHqEYcIj4AAAAAElFTkSuQmCC",
+  "desc": "Яндекс Почта LITE - лёгкая версия почты от Яндекса с упрощённым интерфейсом",
+  "license": "ignore-x-frame-options",
+  "author": "Яндекс",
+  "added": 1794999119288,
+  "content": null
+}
