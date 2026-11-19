@@ -1,3 +1,4 @@
+{type: 'json', data:
 {
   "hencoreApp": 1,
   "name": "GitHub",
@@ -9,4 +10,4 @@
   "author": "...",
   "added": 1794999373637,
   "content": null
-}
+}	},
